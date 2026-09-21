@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# IlliniHousing
 
-## Getting Started
+A full-stack apartment review platform built for UIUC students. Aggregates 430+ listings across Champaign-Urbana, lets verified tenants leave structured reviews, and uses Claude Haiku to generate AI summaries and power a real-time chat assistant.
 
-First, run the development server:
+**Live:** [illinihousing.vercel.app](https://illinihousing.vercel.app)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Problem
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+UIUC students sign leases with almost no reliable information. Landlord review sites are generic and unstructured. Most students find out about mold, pest problems, or deposit disputes only after moving in. IlliniHousing fixes that with verified, structured reviews tied to specific buildings and landlords.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## What I Built
 
-To learn more about Next.js, take a look at the following resources:
+### Data pipeline
+- Wrote 7 Python scrapers (one per major landlord) using `requests` and `BeautifulSoup` to pull listing data from landlord websites — some via HTML parsing, others via their internal REST APIs
+- Scrapers group unit-level listings into buildings, normalize addresses for deduplication, and upsert into Supabase via the service role key
+- Integrated the Google Places API to pull aggregate Google ratings for each landlord
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Backend / Database
+- Postgres database on Supabase with tables for apartments, landlords, reviews, and user profiles
+- Row-level security (RLS) policies so users can only edit their own reviews
+- Supabase Auth for user accounts with verified tenant badges
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Frontend
+- Next.js 14 App Router with server components for fast data fetching
+- Apartment detail pages with satellite imagery (Google Maps Static API), amenity breakdown, 6-axis rating bars, landlord profile with Google rating, and per-building leasing URLs
+- Interactive map (Mapbox GL) on the results page with color-coded pins by rating
+- Preference quiz that scores and ranks apartments by budget, location, and amenities
 
-## Deploy on Vercel
+### AI features
+- **AI summary:** On demand, fetches all reviews for an apartment, sends them to Claude Haiku with a structured prompt, and stores the output (pros, cons, verdict) as JSON in the DB — shown permanently on the apartment page
+- **AI chat assistant:** Floating chat widget on every page. Detects search intent in the user's message, fetches a snapshot of live apartment data from Supabase, injects it as context, and returns natural language recommendations. Hallucination is prevented by design — the model only synthesizes data provided in the prompt, never retrieves from training memory
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | Next.js 14, TypeScript, Tailwind CSS |
+| Database | Supabase (Postgres + Auth + RLS) |
+| Scrapers | Python, Requests, BeautifulSoup |
+| AI | Anthropic Claude Haiku (`claude-haiku-4-5`) |
+| Maps | Mapbox GL JS, Google Maps Static API |
+| Landlord ratings | Google Places API |
+| Deployment | Vercel |
+
+---
+
+## Scale
+
+- **430+** apartments listed across Champaign-Urbana
+- **7** landlords scraped and rated
+- **6** review categories per apartment (maintenance, responsiveness, noise, cleanliness, value, pest control)
+- Red flag detection system (mold, deposit disputes, hidden fees, safety concerns)
+
+---
+
+## Key Engineering Decisions
+
+**Why Next.js App Router?** Server components let me fetch apartment data directly from Supabase on the server before sending HTML to the client — no loading spinners for the main content, better SEO.
+
+**Why Supabase over a custom backend?** Supabase gives Postgres, Auth, and row-level security out of the box. It let me move fast without building an auth system from scratch, while still having full SQL control.
+
+**Why Claude Haiku for AI features?** Fast and cheap enough to run on demand per page visit. The summaries are cached in the DB after first generation so repeat visitors don't incur API cost.
+
+**Deduplication approach:** Address normalization — strip punctuation, lowercase, extract street number and primary street word, then match against existing DB records before inserting.
+
+---
+
+## Author
+
+Saleh Salavudheen · [salehsalavudheen@gmail.com](mailto:salehsalavudheen@gmail.com)
