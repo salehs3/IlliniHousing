@@ -15,7 +15,7 @@ UIUC students sign leases with almost no reliable information. Landlord review s
 ## What I Built
 
 ### Data pipeline
-- Wrote 7 Python scrapers (one per major landlord) using `requests` and `BeautifulSoup` to pull listing data from landlord websites — some via HTML parsing, others via their internal REST APIs
+- Wrote 7 Python scrapers (one per major landlord) using `requests` and `BeautifulSoup` to pull listing data from landlord websites, some via HTML parsing, others via their internal REST APIs
 - Scrapers group unit-level listings into buildings, normalize addresses for deduplication, and upsert into Supabase via the service role key
 - Integrated the Google Places API to pull aggregate Google ratings for each landlord
 
@@ -56,18 +56,6 @@ UIUC students sign leases with almost no reliable information. Landlord review s
 - **7** landlords scraped and rated
 - **6** review categories per apartment (maintenance, responsiveness, noise, cleanliness, value, pest control)
 - Red flag detection system (mold, deposit disputes, hidden fees, safety concerns)
-
----
-
-## Key Engineering Decisions
-
-**Why Next.js App Router?** Server components let me fetch apartment data directly from Supabase on the server before sending HTML to the client — no loading spinners for the main content, better SEO.
-
-**Why Supabase over a custom backend?** Supabase gives Postgres, Auth, and row-level security out of the box. It let me move fast without building an auth system from scratch, while still having full SQL control.
-
-**Why Claude Haiku for AI features?** Fast and cheap enough to run on demand per page visit. The summaries are cached in the DB after first generation so repeat visitors don't incur API cost.
-
-**Deduplication approach:** Address normalization — strip punctuation, lowercase, extract street number and primary street word, then match against existing DB records before inserting.
 
 ---
 
