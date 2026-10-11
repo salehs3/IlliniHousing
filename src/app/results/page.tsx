@@ -66,9 +66,9 @@ export default async function ResultsPage({
   ].filter(Boolean)
 
   return (
-    <main className="min-h-screen bg-[#F2F0EB] flex flex-col">
+    <main className="bg-[#F2F0EB]" style={{ height: '100dvh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       {/* ── Nav ── */}
-      <nav className="bg-[#FAFAF8]/95 backdrop-blur-md border-b border-[#E2DED8] px-6 py-4 flex items-center justify-between sticky top-0 z-10">
+      <nav className="bg-[#FAFAF8]/95 backdrop-blur-md border-b border-[#E2DED8] px-6 py-4 flex items-center justify-between sticky top-0 z-10 flex-shrink-0">
         <Link
           href="/"
           className="font-bold text-[1.05rem] tracking-tight text-[#13294B]"
@@ -84,7 +84,7 @@ export default async function ResultsPage({
       </nav>
 
       {/* ── Results header ── */}
-      <div className="bg-[#FAFAF8] border-b border-[#E2DED8] px-6 py-5">
+      <div className="bg-[#FAFAF8] border-b border-[#E2DED8] px-6 py-5 flex-shrink-0">
         <div className="max-w-5xl mx-auto">
           <h1
             className="font-bold text-[#13294B]"
@@ -121,19 +121,18 @@ export default async function ResultsPage({
       </div>
 
       {error && (
-        <div className="mx-6 mt-4 bg-red-50 border border-red-100 text-red-600 rounded-xl p-4 text-sm">
+        <div className="mx-6 mt-4 bg-red-50 border border-red-100 text-red-600 rounded-xl p-4 text-sm flex-shrink-0">
           Failed to load apartments: {error.message}
         </div>
       )}
 
       {scored.length > 0 ? (
-        <div
-          className="flex flex-1 overflow-hidden w-full"
-          style={{ height: 'calc(100vh - 134px)' }}
-        >
-          {/* Left: ranked list — min-h-0 prevents flex child from overflowing */}
-          <div className="w-full lg:w-[420px] flex-shrink-0 overflow-y-auto p-4 space-y-3 min-h-0">
-            {scored.map((apt, i) => (
+        /* This div fills ALL remaining vertical space and clips at the viewport */
+        <div className="flex flex-1 overflow-hidden w-full" style={{ minHeight: 0 }}>
+
+          {/* Left: scrollable apartment list */}
+          <div className="w-full lg:w-[420px] flex-shrink-0 overflow-y-auto p-4 space-y-3">
+            {scored.map((apt) => (
               <ApartmentCard
                 key={apt.id}
                 apt={apt}
@@ -144,9 +143,13 @@ export default async function ResultsPage({
               />
             ))}
           </div>
-          {/* Right: map — min-h-0 + overflow-hidden constrains the map height */}
-          <div className="hidden lg:flex flex-1 flex-col p-4 pl-0 min-h-0 overflow-hidden">
-            <div className="flex-1 rounded-2xl overflow-hidden border border-[#E2DED8] min-h-0">
+
+          {/* Right: map — explicit height so Mapbox knows exactly how tall to render */}
+          <div className="hidden lg:block flex-1 p-4 pl-0">
+            <div
+              className="rounded-2xl overflow-hidden border border-[#E2DED8]"
+              style={{ height: '100%', width: '100%' }}
+            >
               <MapView
                 apartments={scored.map((a) => ({
                   id: a.id,
