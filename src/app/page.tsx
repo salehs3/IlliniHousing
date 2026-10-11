@@ -1,38 +1,51 @@
-// src/app/page.tsx — Apple-inspired redesign
+// src/app/page.tsx
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 
+const stats = [
+  { value: '430+', label: 'Apartments listed' },
+  { value: '7', label: 'Top landlords rated' },
+  { value: '6', label: 'Rating categories' },
+]
+
 const features = [
   {
+    icon: '🎯',
+    title: 'Personalized matches',
+    desc: 'Tell us your budget, location, and must-haves — we rank apartments that actually fit.',
+  },
+  {
     icon: '⭐',
-    eyebrow: 'Reviews',
-    title: 'From tenants who actually lived there.',
-    desc: 'Ratings across maintenance, noise, pests, value, and landlord responsiveness — not just a single star.',
+    title: 'Honest reviews',
+    desc: 'Ratings from verified UIUC tenants across maintenance, noise, value, pests, and more.',
   },
   {
     icon: '🤖',
-    eyebrow: 'AI',
-    title: 'Summaries that cut through the noise.',
-    desc: 'Claude reads every review and distills it into what you actually need to know: the pros, the cons, and the red flags.',
+    title: 'AI summaries',
+    desc: 'Every building gets an AI-generated pro/con breakdown and red flag alerts from real reviews.',
   },
   {
     icon: '🗺️',
-    eyebrow: 'Maps',
-    title: 'See it from above. Every building.',
-    desc: 'Satellite imagery for every listing so you can see exactly what you\'re signing for.',
-  },
-  {
-    icon: '🎯',
-    eyebrow: 'Quiz',
-    title: 'Tell us what matters. We\'ll rank the rest.',
-    desc: 'Budget, distance to class, must-have amenities. Answer five questions, get a ranked list.',
+    title: 'Campus map',
+    desc: 'See walking distance to your classes, not just a street address.',
   },
 ]
 
-function SatelliteThumb({ lat, lng, address, apiKey }: { lat: number | null; lng: number | null; address: string; apiKey: string }) {
-  const src = lat && lng
-    ? `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=18&size=600x400&maptype=satellite&key=${apiKey}`
-    : `https://maps.googleapis.com/maps/api/staticmap?center=${encodeURIComponent(address)}&zoom=18&size=600x400&maptype=satellite&key=${apiKey}`
+function SatelliteThumb({
+  lat,
+  lng,
+  address,
+  apiKey,
+}: {
+  lat: number | null
+  lng: number | null
+  address: string
+  apiKey: string
+}) {
+  const src =
+    lat && lng
+      ? `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=18&size=400x240&maptype=satellite&key=${apiKey}`
+      : `https://maps.googleapis.com/maps/api/staticmap?center=${encodeURIComponent(address)}&zoom=18&size=400x240&maptype=satellite&key=${apiKey}`
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img src={src} alt={address} className="w-full h-full object-cover" />
@@ -45,265 +58,317 @@ export default async function HomePage() {
 
   const { data: featured } = await supabase
     .from('apartments')
-    .select('id, name, address, lat, lng, rent_min, rent_max, bedrooms, review_count, rating_overall')
+    .select(
+      'id, name, address, lat, lng, rent_min, rent_max, bedrooms, review_count, rating_overall, landlord_id'
+    )
     .not('rent_min', 'is', null)
     .order('review_count', { ascending: false })
     .limit(6)
 
   return (
-    <main style={{ background: '#ffffff', minHeight: '100vh', fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif', WebkitFontSmoothing: 'antialiased' }}>
+    <>
+      {/* ── Hover card lift (CSS only, safe in server component) ── */}
+      <style>{`
+        .apt-card {
+          transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+        }
+        .apt-card:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 12px 28px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06);
+          border-color: #C8C4BE;
+        }
+        .apt-card:active {
+          transform: translateY(-1px);
+          box-shadow: 0 6px 14px rgba(0,0,0,0.09);
+        }
+        .feat-card {
+          transition: background 0.18s ease, border-color 0.18s ease;
+        }
+        .feat-card:hover {
+          background: #F5F2EC;
+          border-left-color: #E84A27;
+        }
+        .nav-link {
+          transition: color 0.15s ease;
+        }
+        .nav-link:hover { color: #1C1917; }
+        .btn-ghost {
+          transition: border-color 0.15s ease, color 0.15s ease;
+        }
+        .btn-ghost:hover {
+          border-color: rgba(255,255,255,0.65);
+          color: #fff;
+        }
+        .btn-primary {
+          transition: background 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
+          box-shadow: 0 1px 3px rgba(232,74,39,0.30);
+        }
+        .btn-primary:hover {
+          background: #c93d1e;
+          box-shadow: 0 3px 10px rgba(232,74,39,0.35);
+        }
+        .btn-primary:active {
+          transform: scale(0.975);
+          box-shadow: 0 1px 3px rgba(232,74,39,0.20);
+        }
+      `}</style>
 
-      {/* Nav — Apple frosted glass style */}
-      <nav style={{
-        position: 'sticky', top: 0, zIndex: 100,
-        background: 'rgba(255,255,255,0.85)',
-        backdropFilter: 'saturate(180%) blur(20px)',
-        WebkitBackdropFilter: 'saturate(180%) blur(20px)',
-        borderBottom: '0.5px solid rgba(0,0,0,0.1)',
-        height: '52px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 24px',
-      }}>
-        <span style={{ fontWeight: 600, fontSize: '17px', color: '#1d1d1f', letterSpacing: '-0.01em' }}>
-          Illini<span style={{ color: '#E84A27' }}>Housing</span>
-        </span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-          <Link href="/apartments" style={{ fontSize: '14px', color: '#6e6e73', textDecoration: 'none' }}>Browse</Link>
-          <Link href="/quiz" style={{
-            fontSize: '14px', fontWeight: 500,
-            background: '#13294B', color: '#fff',
-            padding: '7px 16px', borderRadius: '980px',
-            textDecoration: 'none',
-          }}>
-            Find my apartment
+      <main className="min-h-screen bg-[#F2F0EB]">
+        {/* ── Nav ── */}
+        <nav className="bg-[#FAFAF8]/95 backdrop-blur-md border-b border-[#E2DED8] px-6 py-4 flex items-center justify-between sticky top-0 z-10">
+          <Link href="/" className="font-bold text-[1.1rem] tracking-tight text-[#13294B] leading-none">
+            IlliniHousing
           </Link>
-        </div>
-      </nav>
-
-      {/* Hero */}
-      <section style={{ background: '#fff', padding: '100px 24px 80px', textAlign: 'center' }}>
-        <div style={{ maxWidth: '700px', margin: '0 auto' }}>
-          <div style={{
-            display: 'inline-block',
-            fontSize: '13px', fontWeight: 500, letterSpacing: '0.04em', textTransform: 'uppercase',
-            color: '#E84A27', marginBottom: '20px',
-          }}>
-            Made for UIUC students
-          </div>
-          <h1 style={{
-            fontSize: 'clamp(44px, 7vw, 72px)',
-            fontWeight: 700,
-            letterSpacing: '-0.03em',
-            lineHeight: 1.05,
-            color: '#1d1d1f',
-            marginBottom: '24px',
-          }}>
-            Find your apartment.<br />
-            <span style={{
-              background: 'linear-gradient(135deg, #13294B 0%, #E84A27 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-            }}>
-              Without the regrets.
-            </span>
-          </h1>
-          <p style={{
-            fontSize: '19px', color: '#6e6e73', lineHeight: 1.6,
-            marginBottom: '36px', maxWidth: '520px', margin: '0 auto 36px',
-          }}>
-            Real reviews from verified UIUC tenants. AI-powered summaries. Ranked by what actually matters to you.
-          </p>
-          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link href="/quiz" style={{
-              background: '#E84A27', color: '#fff',
-              fontSize: '17px', fontWeight: 500,
-              padding: '14px 28px', borderRadius: '980px',
-              textDecoration: 'none', letterSpacing: '-0.01em',
-            }}>
-              Find my apartment →
+          <div className="flex items-center gap-5">
+            <Link
+              href="/apartments"
+              className="nav-link text-sm font-medium text-[#78716C]"
+            >
+              Browse
             </Link>
-            <Link href="/apartments" style={{
-              background: 'transparent', color: '#13294B',
-              fontSize: '17px', fontWeight: 500,
-              padding: '14px 28px', borderRadius: '980px',
-              border: '1.5px solid rgba(19,41,75,0.25)',
-              textDecoration: 'none', letterSpacing: '-0.01em',
-            }}>
-              Browse all
+            <Link
+              href="/quiz"
+              className="btn-primary text-sm bg-[#E84A27] text-white px-4 py-2 rounded-lg font-semibold"
+            >
+              Find my apartment
             </Link>
           </div>
-        </div>
-      </section>
+        </nav>
 
-      {/* Stats strip */}
-      <section style={{ background: '#f5f5f7', padding: '48px 24px' }}>
-        <div style={{
-          maxWidth: '700px', margin: '0 auto',
-          display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap', gap: '32px',
-        }}>
-          {[
-            { n: '430+', label: 'Apartments' },
-            { n: '7', label: 'Landlords rated' },
-            { n: '6', label: 'Review categories' },
-          ].map(s => (
-            <div key={s.label} style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '40px', fontWeight: 700, color: '#1d1d1f', letterSpacing: '-0.03em' }}>{s.n}</div>
-              <div style={{ fontSize: '14px', color: '#86868b', marginTop: '4px' }}>{s.label}</div>
+        {/* ── Hero — solid dark, no image dependency ── */}
+        <section
+          className="relative px-6 pt-24 pb-20 overflow-hidden"
+          style={{
+            background: 'linear-gradient(160deg, #0d1f3c 0%, #13294B 45%, #182e52 100%)',
+          }}
+        >
+          {/* Subtle radial glow behind headline */}
+          <div
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background:
+                'radial-gradient(ellipse 70% 60% at 50% 0%, rgba(232,74,39,0.12) 0%, transparent 70%)',
+              pointerEvents: 'none',
+            }}
+          />
+          {/* Fine dot grid overlay */}
+          <div
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+              inset: 0,
+              backgroundImage:
+                'radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px)',
+              backgroundSize: '28px 28px',
+              pointerEvents: 'none',
+            }}
+          />
+
+          <div className="relative max-w-3xl mx-auto text-center">
+            <div className="inline-block text-[#E84A27]/80 text-[0.8rem] font-semibold tracking-widest uppercase px-3 py-1 rounded-full mb-7 border border-[#E84A27]/25 bg-[#E84A27]/08">
+              Made for UIUC students
             </div>
-          ))}
-        </div>
-      </section>
+            <h1
+              className="font-bold text-white leading-[1.06] mb-5"
+              style={{
+                fontSize: 'clamp(2.6rem, 6vw, 4rem)',
+                letterSpacing: '-0.025em',
+              }}
+            >
+              Find your apartment.
+              <br />
+              <span style={{ color: '#FFFFFF', opacity: 0.92 }}>Without the horror stories.</span>
+            </h1>
+            <p
+              className="text-white/60 mb-9 mx-auto leading-relaxed"
+              style={{ fontSize: '1.05rem', maxWidth: '30rem' }}
+            >
+              Real reviews from verified tenants. AI-powered summaries. Ranked by
+              what matters to you — not whoever paid for the top spot.
+            </p>
+            <div className="flex items-center justify-center gap-3 flex-wrap">
+              <Link
+                href="/quiz"
+                className="btn-primary inline-flex items-center gap-1.5 bg-[#E84A27] text-white px-7 py-3 rounded-xl font-semibold text-[0.95rem]"
+              >
+                Find my apartment <span aria-hidden>→</span>
+              </Link>
+              <Link
+                href="/apartments"
+                className="btn-ghost inline-flex items-center text-white/75 border border-white/25 px-7 py-3 rounded-xl font-semibold text-[0.95rem]"
+              >
+                Browse all
+              </Link>
+            </div>
+          </div>
 
-      {/* Featured apartments */}
-      {featured && featured.length > 0 && googleApiKey && (
-        <section style={{ padding: '80px 24px', background: '#fff' }}>
-          <div style={{ maxWidth: '1080px', margin: '0 auto' }}>
-            <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '40px', flexWrap: 'wrap', gap: '12px' }}>
-              <div>
-                <div style={{ fontSize: '13px', fontWeight: 500, color: '#E84A27', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: '8px' }}>Listings</div>
-                <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 700, color: '#1d1d1f', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
-                  Featured apartments
-                </h2>
+          {/* Bottom fade into page bg */}
+          <div
+            aria-hidden="true"
+            className="absolute bottom-0 left-0 right-0 h-16"
+            style={{
+              background: 'linear-gradient(to bottom, transparent, #F2F0EB)',
+            }}
+          />
+        </section>
+
+        {/* ── Stats ── */}
+        <section className="bg-[#FAFAF8] border-y border-[#E2DED8] py-12">
+          <div className="max-w-xl mx-auto px-6 flex items-center justify-around flex-wrap gap-8">
+            {stats.map((s) => (
+              <div key={s.label} className="text-center">
+                <div
+                  className="font-bold text-[#13294B]"
+                  style={{ fontSize: '2.25rem', letterSpacing: '-0.02em' }}
+                >
+                  {s.value}
+                </div>
+                <div className="text-[0.8rem] text-[#78716C] mt-1.5 font-medium tracking-wide uppercase">
+                  {s.label}
+                </div>
               </div>
-              <Link href="/apartments" style={{ fontSize: '17px', color: '#0066cc', textDecoration: 'none', fontWeight: 500 }}>
+            ))}
+          </div>
+        </section>
+
+        {/* ── Featured apartments ── */}
+        {featured && featured.length > 0 && googleApiKey && (
+          <section className="max-w-5xl mx-auto px-6 py-16">
+            <div className="flex items-baseline justify-between mb-8">
+              <h2
+                className="font-bold text-[#13294B]"
+                style={{ fontSize: '1.35rem', letterSpacing: '-0.015em' }}
+              >
+                Featured apartments
+              </h2>
+              <Link
+                href="/apartments"
+                className="text-sm text-[#E84A27] font-medium hover:underline underline-offset-2"
+              >
                 View all →
               </Link>
             </div>
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-              gap: '20px',
-            }}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {featured.map((apt) => {
-                const rentLabel = apt.rent_min && apt.rent_max
-                  ? `$${apt.rent_min.toLocaleString()} – $${apt.rent_max.toLocaleString()}/mo`
-                  : apt.rent_min ? `From $${apt.rent_min.toLocaleString()}/mo` : null
+                const rentLabel =
+                  apt.rent_min && apt.rent_max
+                    ? `$${apt.rent_min.toLocaleString()} – $${apt.rent_max.toLocaleString()}/mo`
+                    : apt.rent_min
+                    ? `From $${apt.rent_min.toLocaleString()}/mo`
+                    : null
                 const bedroomLabel = apt.bedrooms?.length
-                  ? apt.bedrooms.map((b: number) => (b === 0 ? 'Studio' : `${b}BR`)).join(', ')
+                  ? apt.bedrooms
+                      .map((b: number) => (b === 0 ? 'Studio' : `${b}BR`))
+                      .join(', ')
                   : null
                 return (
                   <Link
                     key={apt.id}
                     href={`/apartments/${apt.id}`}
-                    style={{ textDecoration: 'none', display: 'block' }}
+                    className="apt-card group block bg-[#FAFAF8] border border-[#E2DED8] rounded-2xl overflow-hidden"
                   >
-                    <div className="apt-card" style={{
-                        background: '#fff',
-                        borderRadius: '18px',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.07), 0 0 1px rgba(0,0,0,0.04)',
-                        overflow: 'hidden',
-                        border: '1px solid rgba(0,0,0,0.06)',
-                        transition: 'transform 0.25s ease, box-shadow 0.25s ease',
-                      }}>
-                      {/* Satellite image */}
-                      <div style={{ height: '160px', background: '#e5e5ea', overflow: 'hidden', position: 'relative' }}>
-                        <SatelliteThumb lat={apt.lat} lng={apt.lng} address={apt.address} apiKey={googleApiKey} />
-                        {apt.rating_overall > 0 && (
-                          <div style={{
-                            position: 'absolute', top: '10px', right: '10px',
-                            background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)',
-                            color: '#fff', fontSize: '12px', fontWeight: 600,
-                            padding: '4px 9px', borderRadius: '20px',
-                          }}>
-                            ★ {Number(apt.rating_overall).toFixed(1)}
+                    {/* Satellite thumbnail */}
+                    <div className="h-40 bg-[#D6D3CD] overflow-hidden relative">
+                      <SatelliteThumb
+                        lat={apt.lat}
+                        lng={apt.lng}
+                        address={apt.address}
+                        apiKey={googleApiKey}
+                      />
+                      {apt.rating_overall > 0 && (
+                        <div className="absolute top-2.5 right-2.5 bg-[#13294B]/85 backdrop-blur-sm text-white text-xs font-bold px-2 py-1 rounded-md">
+                          ★ {Number(apt.rating_overall).toFixed(1)}
+                        </div>
+                      )}
+                    </div>
+                    {/* Card body */}
+                    <div className="p-4">
+                      <div className="font-semibold text-[#13294B] text-[0.9rem] truncate group-hover:text-[#E84A27] transition-colors duration-150">
+                        {apt.name}
+                      </div>
+                      <div className="text-[0.78rem] text-[#A8A29E] mt-0.5 truncate">
+                        {apt.address}
+                      </div>
+                      <div className="flex items-center justify-between mt-3.5">
+                        <div className="text-sm font-bold text-[#13294B]">
+                          {rentLabel ?? 'Rent on request'}
+                        </div>
+                        {bedroomLabel && (
+                          <div className="text-[0.72rem] text-[#78716C] bg-[#EDECEA] px-2.5 py-0.5 rounded-full font-medium">
+                            {bedroomLabel}
                           </div>
                         )}
                       </div>
-                      {/* Content */}
-                      <div style={{ padding: '16px' }}>
-                        <div style={{ fontWeight: 600, fontSize: '15px', color: '#1d1d1f', marginBottom: '3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {apt.name}
+                      {apt.review_count > 0 && (
+                        <div className="text-[0.72rem] text-[#A8A29E] mt-1.5">
+                          {apt.review_count} review{apt.review_count !== 1 ? 's' : ''}
                         </div>
-                        <div style={{ fontSize: '13px', color: '#86868b', marginBottom: '12px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {apt.address}
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                          <div style={{ fontSize: '15px', fontWeight: 700, color: '#1d1d1f' }}>{rentLabel ?? 'Rent on request'}</div>
-                          {bedroomLabel && (
-                            <div style={{ fontSize: '12px', color: '#6e6e73', background: '#f5f5f7', padding: '3px 10px', borderRadius: '20px' }}>
-                              {bedroomLabel}
-                            </div>
-                          )}
-                        </div>
-                        {apt.review_count > 0 && (
-                          <div style={{ fontSize: '12px', color: '#86868b', marginTop: '6px' }}>
-                            {apt.review_count} review{apt.review_count !== 1 ? 's' : ''}
-                          </div>
-                        )}
-                      </div>
+                      )}
                     </div>
                   </Link>
                 )
               })}
             </div>
-          </div>
-        </section>
-      )}
+          </section>
+        )}
 
-      {/* Features — Apple-style large grid */}
-      <section style={{ background: '#f5f5f7', padding: '80px 24px' }}>
-        <div style={{ maxWidth: '980px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '56px' }}>
-            <div style={{ fontSize: '13px', fontWeight: 500, color: '#E84A27', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: '12px' }}>
-              Why IlliniHousing
-            </div>
-            <h2 style={{ fontSize: 'clamp(32px, 5vw, 48px)', fontWeight: 700, color: '#1d1d1f', letterSpacing: '-0.025em', lineHeight: 1.08 }}>
-              Sign with confidence.
-            </h2>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px' }}>
+        {/* ── Features ── */}
+        <section className="max-w-4xl mx-auto px-6 py-16">
+          <h2
+            className="font-bold text-[#13294B] text-center mb-10"
+            style={{ fontSize: '1.35rem', letterSpacing: '-0.015em' }}
+          >
+            Everything you need to sign with confidence
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             {features.map((f) => (
-              <div key={f.title} style={{
-                background: '#fff',
-                borderRadius: '20px',
-                padding: '28px 24px',
-                border: '1px solid rgba(0,0,0,0.06)',
-                boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
-              }}>
-                <div style={{ fontSize: '28px', marginBottom: '16px' }}>{f.icon}</div>
-                <div style={{ fontSize: '11px', fontWeight: 600, color: '#86868b', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '8px' }}>
-                  {f.eyebrow}
-                </div>
-                <div style={{ fontSize: '17px', fontWeight: 600, color: '#1d1d1f', marginBottom: '10px', lineHeight: 1.3, letterSpacing: '-0.01em' }}>
+              <div
+                key={f.title}
+                className="feat-card bg-[#FAFAF8] border border-[#E2DED8] border-l-4 border-l-transparent rounded-xl p-6"
+              >
+                <div className="text-2xl mb-3.5">{f.icon}</div>
+                <div className="font-semibold text-[#13294B] mb-1.5 text-[0.95rem]">
                   {f.title}
                 </div>
-                <div style={{ fontSize: '14px', color: '#6e6e73', lineHeight: 1.55 }}>
-                  {f.desc}
-                </div>
+                <div className="text-sm text-[#78716C] leading-relaxed">{f.desc}</div>
               </div>
             ))}
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* CTA — dark section like Apple */}
-      <section style={{ background: '#1d1d1f', padding: '80px 24px', textAlign: 'center' }}>
-        <div style={{ maxWidth: '560px', margin: '0 auto' }}>
-          <h2 style={{ fontSize: 'clamp(32px, 5vw, 48px)', fontWeight: 700, color: '#f5f5f7', letterSpacing: '-0.025em', lineHeight: 1.08, marginBottom: '16px' }}>
-            Lease season is here.
+        {/* ── CTA banner ── */}
+        <section
+          className="mx-6 mb-16 rounded-2xl px-8 py-14 text-center max-w-4xl xl:mx-auto"
+          style={{
+            background: 'linear-gradient(135deg, #0d1f3c 0%, #13294B 100%)',
+          }}
+        >
+          <h2
+            className="font-bold text-white mb-3"
+            style={{ fontSize: '1.5rem', letterSpacing: '-0.015em' }}
+          >
+            Lease season is coming.
           </h2>
-          <p style={{ fontSize: '17px', color: '#86868b', marginBottom: '36px', lineHeight: 1.55 }}>
-            Most Champaign leases start August 1. Don&apos;t rush into the wrong one.
+          <p className="text-blue-200/80 mb-7 text-sm leading-relaxed">
+            Most Champaign leases start August 1.{' '}
+            <br className="hidden sm:block" />
+            Don&apos;t rush into a bad one.
           </p>
-          <Link href="/quiz" style={{
-            display: 'inline-block',
-            background: '#fff', color: '#1d1d1f',
-            fontSize: '17px', fontWeight: 500,
-            padding: '14px 28px', borderRadius: '980px',
-            textDecoration: 'none', letterSpacing: '-0.01em',
-          }}>
+          <Link
+            href="/quiz"
+            className="btn-primary inline-block bg-[#E84A27] text-white px-8 py-3 rounded-xl font-semibold text-[0.95rem]"
+          >
             Find my apartment →
           </Link>
-        </div>
-      </section>
+        </section>
 
-      {/* Footer */}
-      <footer style={{ background: '#f5f5f7', borderTop: '0.5px solid rgba(0,0,0,0.1)', padding: '24px', textAlign: 'center' }}>
-        <p style={{ fontSize: '12px', color: '#86868b' }}>
+        {/* ── Footer ── */}
+        <footer className="border-t border-[#E2DED8] px-6 py-6 text-center text-[0.75rem] text-[#A8A29E]">
           Built for UIUC students · Not affiliated with the University of Illinois
-        </p>
-      </footer>
-    </main>
+        </footer>
+      </main>
+    </>
   )
 }
