@@ -141,7 +141,7 @@ export default async function ResultsPage({
                 reasons={apt.reasons}
                 misses={apt.misses}
                 partials={apt.partials}
-                rank={i + 1}
+                
               />
             ))}
           </div>
