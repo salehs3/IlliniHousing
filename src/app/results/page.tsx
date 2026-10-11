@@ -131,8 +131,8 @@ export default async function ResultsPage({
           className="flex flex-1 overflow-hidden w-full"
           style={{ height: 'calc(100vh - 134px)' }}
         >
-          {/* Left: ranked list */}
-          <div className="w-full lg:w-[420px] flex-shrink-0 overflow-y-auto p-4 space-y-3">
+          {/* Left: ranked list — min-h-0 prevents flex child from overflowing */}
+          <div className="w-full lg:w-[420px] flex-shrink-0 overflow-y-auto p-4 space-y-3 min-h-0">
             {scored.map((apt, i) => (
               <ApartmentCard
                 key={apt.id}
@@ -144,9 +144,9 @@ export default async function ResultsPage({
               />
             ))}
           </div>
-          {/* Right: map — fills all remaining space */}
-          <div className="hidden lg:block flex-1 p-4 pl-0">
-            <div className="h-full rounded-2xl overflow-hidden border border-[#E2DED8]">
+          {/* Right: map — min-h-0 + overflow-hidden constrains the map height */}
+          <div className="hidden lg:flex flex-1 flex-col p-4 pl-0 min-h-0 overflow-hidden">
+            <div className="flex-1 rounded-2xl overflow-hidden border border-[#E2DED8] min-h-0">
               <MapView
                 apartments={scored.map((a) => ({
                   id: a.id,
