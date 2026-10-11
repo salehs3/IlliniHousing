@@ -188,23 +188,14 @@ export default async function HomePage() {
                     href={`/apartments/${apt.id}`}
                     style={{ textDecoration: 'none', display: 'block' }}
                   >
-                    <div style={{
-                      background: '#fff',
-                      borderRadius: '18px',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.07), 0 0 1px rgba(0,0,0,0.04)',
-                      overflow: 'hidden',
-                      border: '1px solid rgba(0,0,0,0.06)',
-                      transition: 'transform 0.25s ease, box-shadow 0.25s ease',
-                    }}
-                    onMouseEnter={e => {
-                      (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-4px)'
-                      ;(e.currentTarget as HTMLDivElement).style.boxShadow = '0 12px 32px rgba(0,0,0,0.10), 0 0 1px rgba(0,0,0,0.04)'
-                    }}
-                    onMouseLeave={e => {
-                      (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)'
-                      ;(e.currentTarget as HTMLDivElement).style.boxShadow = '0 2px 8px rgba(0,0,0,0.07), 0 0 1px rgba(0,0,0,0.04)'
-                    }}
-                    >
+                    <div className="apt-card" style={{
+                        background: '#fff',
+                        borderRadius: '18px',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.07), 0 0 1px rgba(0,0,0,0.04)',
+                        overflow: 'hidden',
+                        border: '1px solid rgba(0,0,0,0.06)',
+                        transition: 'transform 0.25s ease, box-shadow 0.25s ease',
+                      }}>
                       {/* Satellite image */}
                       <div style={{ height: '160px', background: '#e5e5ea', overflow: 'hidden', position: 'relative' }}>
                         <SatelliteThumb lat={apt.lat} lng={apt.lng} address={apt.address} apiKey={googleApiKey} />
