@@ -121,18 +121,18 @@ export default async function ResultsPage({
       </div>
 
       {error && (
-        <div className="max-w-5xl mx-auto mx-6 mt-4 bg-red-50 border border-red-100 text-red-600 rounded-xl p-4 text-sm">
+        <div className="mx-6 mt-4 bg-red-50 border border-red-100 text-red-600 rounded-xl p-4 text-sm">
           Failed to load apartments: {error.message}
         </div>
       )}
 
       {scored.length > 0 ? (
         <div
-          className="flex flex-1 overflow-hidden max-w-5xl w-full mx-auto"
+          className="flex flex-1 overflow-hidden w-full"
           style={{ height: 'calc(100vh - 134px)' }}
         >
           {/* Left: ranked list */}
-          <div className="w-full lg:w-[460px] flex-shrink-0 overflow-y-auto p-4 space-y-3">
+          <div className="w-full lg:w-[420px] flex-shrink-0 overflow-y-auto p-4 space-y-3">
             {scored.map((apt, i) => (
               <ApartmentCard
                 key={apt.id}
@@ -141,11 +141,10 @@ export default async function ResultsPage({
                 reasons={apt.reasons}
                 misses={apt.misses}
                 partials={apt.partials}
-                
               />
             ))}
           </div>
-          {/* Right: map */}
+          {/* Right: map — fills all remaining space */}
           <div className="hidden lg:block flex-1 p-4 pl-0">
             <div className="h-full rounded-2xl overflow-hidden border border-[#E2DED8]">
               <MapView
