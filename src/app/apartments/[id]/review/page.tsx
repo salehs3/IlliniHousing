@@ -169,7 +169,7 @@ export default function ReviewPage() {
     <main className="min-h-screen bg-gray-50">
       <nav className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
         <Link href="/" className="font-bold text-[#13294B]">
-          UIUC <span className="text-[#E84A27]">Apartments</span>
+          IlliniHousing
         </Link>
         <Link href={`/apartments/${aptId}`}
           className="text-sm text-gray-500 border border-gray-200 px-3 py-1.5 rounded-lg hover:border-gray-400">

@@ -180,7 +180,7 @@ export default async function ApartmentDetailPage({
       {/* Nav */}
       <nav className="bg-[#FAFAF8]/95 backdrop-blur-sm border-b border-[#E2DED8] px-6 py-4 flex items-center justify-between sticky top-0 z-10">
         <Link href="/" className="font-bold text-xl text-[#13294B]">
-          UIUC <span className="text-[#E84A27]">Apartments</span>
+          IlliniHousing
         </Link>
         <Link href="javascript:history.back()" className="text-sm text-[#78716C] hover:text-[#1C1917] border border-[#E2DED8] px-3 py-1.5 rounded-lg transition-colors">
           ← Back

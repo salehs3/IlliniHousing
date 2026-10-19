@@ -44,7 +44,7 @@ export default async function AdminPage() {
     <main className="min-h-screen bg-gray-50">
       <nav className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
         <span className="font-bold text-[#13294B]">
-          UIUC <span className="text-[#E84A27]">Apartments</span>
+          IlliniHousing
           <span className="ml-3 text-xs bg-[#13294B] text-white px-2 py-0.5 rounded-full">Admin</span>
         </span>
         <a href="/" className="text-sm text-gray-500 hover:text-gray-800">← Back to site</a>

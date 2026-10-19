@@ -56,7 +56,7 @@ export default function AuthPage() {
     <main className="min-h-screen bg-[#F2F0EB] flex flex-col items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <Link href="/" className="block text-center font-bold text-xl text-[#13294B] mb-8">
-          UIUC <span className="text-[#E84A27]">Apartments</span>
+          IlliniHousing
         </Link>
 
         <div className="bg-[#FAFAF8] rounded-2xl border border-[#E2DED8] p-10 shadow-[0_4px_24px_rgba(0,0,0,0.07)]">
